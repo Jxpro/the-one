@@ -18,4 +18,5 @@ doc/package-list
 
 # IntelliJ IDEA files
 .idea/
+out/
 *.iml
