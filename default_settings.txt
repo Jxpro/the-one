@@ -45,7 +45,7 @@ Scenario.nrofHostGroups = 6
 # pois: Points Of Interest indexes and probabilities (poiIndex1, poiProb1, poiIndex2, poiProb2, ... )
 #       for ShortestPathMapBasedMovement
 # okMaps : which map nodes are OK for the group (map file indexes), default=all
-#          for all MapBasedMovent models
+#          for all MapBasedMovement models
 # routeFile: route's file path - for MapRouteMovement
 # routeType: route's type - for MapRouteMovement
 
