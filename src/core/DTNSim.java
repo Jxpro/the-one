@@ -25,7 +25,7 @@ public class DTNSim {
 	 * @see #registerForReset(String) */
 	public static final String RESET_METHOD_NAME = "reset";
 	/** List of class names that should be reset between batch runs */
-	private static List<Class<?>> resetList = new ArrayList<Class<?>>();
+	private static final List<Class<?>> resetList = new ArrayList<>();
 
 	/**
 	 * Starts the user interface with given arguments.
@@ -41,8 +41,8 @@ public class DTNSim {
 	 */
 	public static void main(String[] args) {
 		boolean batchMode = false;
-		int nrofRuns[] = {0,1};
-		String confFiles[];
+		int[] nrofRuns = {0,1};
+		String[] confFiles;
 		int firstConfIndex = 0;
 		int guiIndex = 0;
 
@@ -64,8 +64,7 @@ public class DTNSim {
 				try { /* is there a run index for the GUI mode ? */
 					guiIndex = Integer.parseInt(args[0]);
 					firstConfIndex = 1;
-				} catch (NumberFormatException e) {
-					firstConfIndex = 0;
+				} catch (NumberFormatException ignored) {
 				}
 			}
 			confFiles = args;
@@ -150,8 +149,7 @@ public class DTNSim {
 					" for resetting; class not found");
 			System.exit(-1);
 
-		}
-		catch (NoSuchMethodException e) {
+		} catch (NoSuchMethodException e) {
 			System.err.println("Can't register class " + className +
 			" for resetting; class doesn't contain resetting method");
 			System.exit(-1);
@@ -182,16 +180,15 @@ public class DTNSim {
 	 * @return The first and (last_run_index - 1) in an array
 	 */
 	private static int[] parseNrofRuns(String arg) {
-		int val[] = {0,1};
+		int[] val = {0,1};
 		try {
 			if (arg.contains(RANGE_DELIMETER)) {
 				val[0] = Integer.parseInt(arg.substring(0,
 						arg.indexOf(RANGE_DELIMETER))) - 1;
 				val[1] = Integer.parseInt(arg.substring(arg.
-						indexOf(RANGE_DELIMETER) + 1, arg.length()));
+						indexOf(RANGE_DELIMETER) + 1));
 			}
 			else {
-				val[0] = 0;
 				val[1] = Integer.parseInt(arg);
 			}
 		} catch (NumberFormatException e) {
