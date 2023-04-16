@@ -41,7 +41,7 @@ public class Settings {
 	/**
 	 * Setting to define the file name where all read settings are written
 	 * ({@value}. If set to an empty string, standard output is used.
-	 * By default setting are not written anywhere.
+	 * By default, setting are not written anywhere.
 	 */
 	public static final String SETTING_OUTPUT_S = "Settings.output";
 
@@ -51,14 +51,14 @@ public class Settings {
 
 	/** Stream where all read settings are written to */
 	private static PrintStream out = null;
-	private static Set<String> writtenSettings = new HashSet<String>();
+	private static final Set<String> writtenSettings = new HashSet<>();
 
 	/** run index for run-specific settings */
 	private static int runIndex = 0;
 	private String namespace = null; // namespace to look the settings from
 	private String secondaryNamespace = null;
-	private Stack<String> oldNamespaces;
-	private Stack<String> secondaryNamespaces;
+	private final Stack<String> oldNamespaces;
+	private final Stack<String> secondaryNamespaces;
 
 	/**
 	 * Creates a setting object with a namespace. Namespace is the prefix
@@ -66,8 +66,8 @@ public class Settings {
 	 * @param namespace Namespace to use
 	 */
 	public Settings(String namespace) {
-		this.oldNamespaces = new Stack<String>();
-		this.secondaryNamespaces = new Stack<String>();
+		this.oldNamespaces = new Stack<>();
+		this.secondaryNamespaces = new Stack<>();
 		setNameSpace(namespace);
 	}
 
@@ -107,7 +107,7 @@ public class Settings {
 	 * @param sname Name of the setting (for error messages)
 	 * @throws SettingsError If the given array didn't qualify as a range
 	 */
-	public void assertValidRange(int range[], String sname)
+	public void assertValidRange(int[] range, String sname)
 		throws SettingsError {
 		if (range.length != 2) {
 			throw new SettingsError("Range setting " +
@@ -145,7 +145,7 @@ public class Settings {
 	}
 
 	/**
-	 * Appends the given namespace to the the current namespace, <strong>
+	 * Appends the given namespace to the current namespace, <strong>
 	 * for both the primary and secondary namespace </strong>.
 	 * This change can be reverted using {@link #restoreNameSpace()} and
 	 * {@link #restoreSecondaryNamespace()}.
@@ -262,18 +262,7 @@ public class Settings {
 		}
 
 		outFile = props.getProperty(SETTING_OUTPUT_S);
-		if (outFile != null) {
-			if (outFile.trim().length() == 0) {
-				out = System.out;
-			} else {
-				try {
-					out = new PrintStream(new File(outFile));
-				} catch (FileNotFoundException e) {
-					throw new SettingsError("Can't open Settings output file:" +
-							e);
-				}
-			}
-		}
+		saveSettings(outFile);
 	}
 
 	/**
@@ -296,12 +285,22 @@ public class Settings {
 		}
 
 		String outFile = props.getProperty(SETTING_OUTPUT_S);
+		saveSettings(outFile);
+	}
+
+	/**
+	 * Saves the settings to the given file. If the file name is null or empty,
+	 * the settings are saved to System.out.
+	 * @param outFile The file name where the settings are saved or null if
+	 *                the settings are saved to stdout
+	 */
+	private static void saveSettings(String outFile) {
 		if (outFile != null) {
 			if (outFile.trim().length() == 0) {
 				out = System.out;
 			} else {
 				try {
-					out = new PrintStream(new File(outFile));
+					out = new PrintStream(outFile);
 				} catch (FileNotFoundException e) {
 					throw new SettingsError("Can't open Settings output file:" +
 							e);
@@ -497,7 +496,7 @@ public class Settings {
 	 * @return Value of the setting as a double (or the default value)
 	 */
 	public double getDouble(String name, double defaultValue) {
-		return parseDouble(getSetting(name, ""+defaultValue), name);
+		return parseDouble(getSetting(name, String.valueOf(defaultValue)), name);
 	}
 
 	/**
@@ -595,7 +594,7 @@ public class Settings {
 	 * @throws SettingsError if something went wrong with reading
 	 */
 	public String[] getCsvSetting(String name) {
-		ArrayList<String> values = new ArrayList<String>();
+		ArrayList<String> values = new ArrayList<>();
 		String csv = getSetting(name);
 		Scanner s = new Scanner(csv);
 		s.useDelimiter(",");
@@ -867,22 +866,19 @@ public class Settings {
 	 */
 	private Object loadObject(String className, Class<?>[] argsClass,
 			Object[] args) {
-		Object o = null;
+		Object o;
 		Class<?> objClass = getClass(className);
 		Constructor<?> constructor;
 
 		try {
 			if (argsClass != null) { // use a specific constructor
-				constructor = objClass.getConstructor((Class[])argsClass);
+				constructor = objClass.getConstructor(argsClass);
 				o = constructor.newInstance(args);
 			}
 			else { // call empty constructor
 				o = objClass.newInstance();
 			}
-		} catch (SecurityException e) {
-			e.printStackTrace();
-			throw new SettingsError("Fatal exception " + e, e);
-		} catch (IllegalArgumentException e) {
+		} catch (SecurityException | IllegalAccessException | IllegalArgumentException e) {
 			e.printStackTrace();
 			throw new SettingsError("Fatal exception " + e, e);
 		} catch (NoSuchMethodException e) {
@@ -891,9 +887,6 @@ public class Settings {
 		} catch (InstantiationException e) {
 			throw new SettingsError("Can't create an instance of '" +
 					className + "'", e);
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-			throw new SettingsError("Fatal exception " + e, e);
 		} catch (InvocationTargetException e) {
 			// this exception occurs if initialization of the object fails
 			if (e.getCause() instanceof SettingsError) {
@@ -917,13 +910,12 @@ public class Settings {
 	 * @throws SettingsError if such class wasn't found or couldn't be loaded
 	 */
 	private Class<?> getClass(String name) {
-		String className = name;
 		Class<?> c;
 
 		try {
-			c = Class.forName(className);
+			c = Class.forName(name);
 		} catch (ClassNotFoundException e) {
-			throw new SettingsError("Couldn't find class '" + className + "'"+
+			throw new SettingsError("Couldn't find class '" + name + "'"+
 					"\n" + e.getMessage(),e);
 		}
 
@@ -934,7 +926,7 @@ public class Settings {
 	 * Fills a String formatted in a special way with values from Settings.
 	 * String can contain (fully qualified) setting names surrounded by
 	 * delimiters (see {@link #FILL_DELIMITER}). Values for those settings
-	 * are retrieved and filled in the place of place holders.
+	 * are retrieved and filled in the place of placeholders.
 	 * @param input The input string that may contain value requests
 	 * @return A string filled with requested values (or the original string
 	 * if no requests were found)
@@ -946,24 +938,24 @@ public class Settings {
 		}
 
 		Settings s = new Settings(); // don't use any namespace
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		Scanner scan = new Scanner(input);
 		scan.useDelimiter(FILL_DELIMITER);
 
 		if (input.startsWith(FILL_DELIMITER)) {
-			result += s.getSetting(scan.next());
+			result.append(s.getSetting(scan.next()));
 		}
 
 		while(scan.hasNext()) {
-			result += scan.next();
+			result.append(scan.next());
 			if (!scan.hasNext()) {
 				break;
 			}
-			result += s.getSetting(scan.next());
+			result.append(s.getSetting(scan.next()));
 		}
 		
 		scan.close();
-		return result;
+		return result.toString();
 	}
 
 	/**
