@@ -83,40 +83,40 @@ public class SimScenario implements Serializable {
 	private static final String APP_PACKAGE = "applications.";
 
 	/** The world instance */
-	private World world;
+	private final World world;
 	/** List of hosts in this simulation */
 	protected List<DTNHost> hosts;
 	/** Name of the simulation */
-	private String name;
+	private final String name;
 	/** number of host groups */
 	int nrofGroups;
 	/** Width of the world */
-	private int worldSizeX;
+	private final int worldSizeX;
 	/** Height of the world */
-	private int worldSizeY;
+	private final int worldSizeY;
 	/** Largest host's radio range */
-	private double maxHostRange;
+	private final double maxHostRange;
 	/** Simulation end time */
-	private double endTime;
+	private final double endTime;
 	/** Update interval of sim time */
-	private double updateInterval;
+	private final double updateInterval;
 	/** External events queue */
-	private EventQueueHandler eqHandler;
+	private final EventQueueHandler eqHandler;
 	/** Should connections between hosts be simulated */
-	private boolean simulateConnections;
+	private final boolean simulateConnections;
 	/** Map used for host movement (if any) */
 	private SimMap simMap;
 
 	/** Global connection event listeners */
-	private List<ConnectionListener> connectionListeners;
+	private final List<ConnectionListener> connectionListeners;
 	/** Global message event listeners */
-	private List<MessageListener> messageListeners;
+	private final List<MessageListener> messageListeners;
 	/** Global movement event listeners */
-	private List<MovementListener> movementListeners;
+	private final List<MovementListener> movementListeners;
 	/** Global update event listeners */
-	private List<UpdateListener> updateListeners;
+	private final List<UpdateListener> updateListeners;
 	/** Global application event listeners */
-	private List<ApplicationListener> appListeners;
+	private final List<ApplicationListener> appListeners;
 
 	static {
 		DTNSim.registerForReset(SimScenario.class.getCanonicalName());
@@ -146,11 +146,11 @@ public class SimScenario implements Serializable {
 		this.simMap = null;
 		this.maxHostRange = 1;
 
-		this.connectionListeners = new ArrayList<ConnectionListener>();
-		this.messageListeners = new ArrayList<MessageListener>();
-		this.movementListeners = new ArrayList<MovementListener>();
-		this.updateListeners = new ArrayList<UpdateListener>();
-		this.appListeners = new ArrayList<ApplicationListener>();
+		this.connectionListeners = new ArrayList<>();
+		this.messageListeners = new ArrayList<>();
+		this.movementListeners = new ArrayList<>();
+		this.updateListeners = new ArrayList<>();
+		this.appListeners = new ArrayList<>();
 		this.eqHandler = new EventQueueHandler();
 
 		/* TODO: check size from movement models */
@@ -319,11 +319,11 @@ public class SimScenario implements Serializable {
 	 * Creates hosts for the scenario
 	 */
 	protected void createHosts() {
-		this.hosts = new ArrayList<DTNHost>();
+		this.hosts = new ArrayList<>();
 
 		for (int i=1; i<=nrofGroups; i++) {
 			List<NetworkInterface> interfaces =
-				new ArrayList<NetworkInterface>();
+					new ArrayList<>();
 			Settings s = new Settings(GROUP_NS+i);
 			s.setSecondaryNamespace(GROUP_NS);
 			String gid = s.getSetting(GROUP_ID_S);
@@ -362,8 +362,8 @@ public class SimScenario implements Serializable {
 				appCount = 0;
 			}
 			for (int j=1; j<=appCount; j++) {
-				String appname = null;
-				Application protoApp = null;
+				String appname;
+				Application protoApp;
 				try {
 					// Get name of the application for this group
 					appname = s.getSetting(GAPPNAME_S+j);
