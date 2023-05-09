@@ -64,7 +64,7 @@ public abstract class DTNSimUI {
 	 */
 	public DTNSimUI() {
 		this.lastUpdate = 0;
-		this.reports = new Vector<Report>();
+		this.reports = new Vector<>();
 		this.simDone = false;
 		this.simCancelled = false;
 	}
@@ -86,7 +86,7 @@ public abstract class DTNSimUI {
 	 * Initializes the simulator model.
 	 */
 	private void initModel() {
-		Settings settings = null;
+		Settings settings;
 
 		try {
 			settings = new Settings();
