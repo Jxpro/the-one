@@ -94,6 +94,9 @@ public abstract class ActiveRouter extends MessageRouter {
 	 */
 	@Override
 	public void changedConnection(Connection con) {
+		// TODO：在这里开始或完成一次相遇记录，通过con.isUp()判断是开始还是完成
+		// this.getHost().getComBus().getProperty()
+
 		if (this.energy != null && con.isUp() && !con.isInitiator(getHost())) {
 			this.energy.reduceDiscoveryEnergy();
 		}
@@ -645,7 +648,9 @@ public abstract class ActiveRouter extends MessageRouter {
 	 * Subclasses that are interested of the event may want to override this.
 	 * @param con The connection whose transfer was finalized
 	 */
-	protected void transferDone(Connection con) { }
+	protected void transferDone(Connection con) {
+		// TODO：在这里添加相遇记录中，双方的消息列表，借助con参数；同时在复写的方法中，调用super.transferDone(con)
+	}
 
 	@Override
 	public RoutingInfo getRoutingInfo() {
