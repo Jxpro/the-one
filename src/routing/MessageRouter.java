@@ -100,10 +100,10 @@ public abstract class MessageRouter {
 	/** TTL for all messages */
 	protected int msgTtl;
 	/** Queue mode for sending messages */
-	private int sendQueueMode;
+	private final int sendQueueMode;
 
 	/** applications attached to the host */
-	private HashMap<String, Collection<Application>> applications = null;
+	private final HashMap<String, Collection<Application>> applications;
 
 	/**
 	 * Constructor. Creates a new message router based on the settings in
@@ -114,7 +114,7 @@ public abstract class MessageRouter {
 	public MessageRouter(Settings s) {
 		this.bufferSize = Integer.MAX_VALUE; // defaults to rather large buffer
 		this.msgTtl = Message.INFINITE_TTL;
-		this.applications = new HashMap<String, Collection<Application>>();
+		this.applications = new HashMap<>();
 
 		if (s.contains(B_SIZE_S)) {
 			this.bufferSize = s.getLong(B_SIZE_S);
@@ -134,9 +134,9 @@ public abstract class MessageRouter {
 
 			String mode = s.getSetting(SEND_QUEUE_MODE_S);
 
-			if (mode.trim().toUpperCase().equals(STR_Q_MODE_FIFO)) {
+			if (mode.trim().equalsIgnoreCase(STR_Q_MODE_FIFO)) {
 				this.sendQueueMode = Q_MODE_FIFO;
-			} else if (mode.trim().toUpperCase().equals(STR_Q_MODE_RANDOM)){
+			} else if (mode.trim().equalsIgnoreCase(STR_Q_MODE_RANDOM)){
 				this.sendQueueMode = Q_MODE_RANDOM;
 			} else {
 				this.sendQueueMode = s.getInt(SEND_QUEUE_MODE_S);
@@ -159,10 +159,10 @@ public abstract class MessageRouter {
 	 * @param mListeners The message listeners
 	 */
 	public void init(DTNHost host, List<MessageListener> mListeners) {
-		this.incomingMessages = new HashMap<String, Message>();
-		this.messages = new HashMap<String, Message>();
-		this.deliveredMessages = new HashMap<String, Message>();
-		this.blacklistedMessages = new HashMap<String, Object>();
+		this.incomingMessages = new HashMap<>();
+		this.messages = new HashMap<>();
+		this.deliveredMessages = new HashMap<>();
+		this.blacklistedMessages = new HashMap<>();
 		this.mListeners = mListeners;
 		this.host = host;
 	}
@@ -176,7 +176,7 @@ public abstract class MessageRouter {
 		this.msgTtl = r.msgTtl;
 		this.sendQueueMode = r.sendQueueMode;
 
-		this.applications = new HashMap<String, Collection<Application>>();
+		this.applications = new HashMap<>();
 		for (Collection<Application> apps : r.applications.values()) {
 			for (Application app : apps) {
 				addApplication(app.replicate());
@@ -460,8 +460,7 @@ public abstract class MessageRouter {
 	 * @return The removed message or null if message for the ID wasn't found
 	 */
 	protected Message removeFromMessages(String id) {
-		Message m = this.messages.remove(id);
-		return m;
+		return this.messages.remove(id);
 	}
 
 	/**
@@ -524,41 +523,35 @@ public abstract class MessageRouter {
 	@SuppressWarnings(value = "unchecked") /* ugly way to make this generic */
 	protected List sortByQueueMode(List list) {
 		switch (sendQueueMode) {
-		case Q_MODE_RANDOM:
-			Collections.shuffle(list, new Random(SimClock.getIntTime()));
-			break;
-		case Q_MODE_FIFO:
-			Collections.sort(list,
+			case Q_MODE_RANDOM -> Collections.shuffle(list, new Random(SimClock.getIntTime()));
+			case Q_MODE_FIFO -> Collections.sort(list,
 					new Comparator() {
-				/** Compares two tuples by their messages' receiving time */
-				public int compare(Object o1, Object o2) {
-					double diff;
-					Message m1, m2;
+						/** Compares two tuples by their messages' receiving time */
+						public int compare(Object o1, Object o2) {
+							double diff;
+							Message m1, m2;
 
-					if (o1 instanceof Tuple) {
-						m1 = ((Tuple<Message, Connection>)o1).getKey();
-						m2 = ((Tuple<Message, Connection>)o2).getKey();
-					}
-					else if (o1 instanceof Message) {
-						m1 = (Message)o1;
-						m2 = (Message)o2;
-					}
-					else {
-						throw new SimError("Invalid type of objects in " +
-								"the list");
-					}
+							if (o1 instanceof Tuple) {
+								m1 = ((Tuple<Message, Connection>) o1).getKey();
+								m2 = ((Tuple<Message, Connection>) o2).getKey();
+							} else if (o1 instanceof Message) {
+								m1 = (Message) o1;
+								m2 = (Message) o2;
+							} else {
+								throw new SimError("Invalid type of objects in " +
+										"the list");
+							}
 
-					diff = m1.getReceiveTime() - m2.getReceiveTime();
-					if (diff == 0) {
-						return 0;
-					}
-					return (diff < 0 ? -1 : 1);
-				}
-			});
-			break;
-		/* add more queue modes here */
-		default:
-			throw new SimError("Unknown queue mode " + sendQueueMode);
+							diff = m1.getReceiveTime() - m2.getReceiveTime();
+							if (diff == 0) {
+								return 0;
+							}
+							return (diff < 0 ? -1 : 1);
+						}
+					});
+
+			/* add more queue modes here */
+			default -> throw new SimError("Unknown queue mode " + sendQueueMode);
 		}
 
 		return list;
@@ -574,22 +567,23 @@ public abstract class MessageRouter {
 	 */
 	protected int compareByQueueMode(Message m1, Message m2) {
 		switch (sendQueueMode) {
-		case Q_MODE_RANDOM:
-			/* return randomly (enough) but consistently -1, 0 or 1 */
-			int hash_diff = m1.hashCode() - m2.hashCode();
-			if (hash_diff == 0) {
-				return 0;
+			case Q_MODE_RANDOM -> {
+				/* return randomly (enough) but consistently -1, 0 or 1 */
+				int hash_diff = m1.hashCode() - m2.hashCode();
+				if (hash_diff == 0) {
+					return 0;
+				}
+				return (hash_diff < 0 ? -1 : 1);
 			}
-			return (hash_diff < 0 ? -1 : 1);
-		case Q_MODE_FIFO:
-			double diff = m1.getReceiveTime() - m2.getReceiveTime();
-			if (diff == 0) {
-				return 0;
+			case Q_MODE_FIFO -> {
+				double diff = m1.getReceiveTime() - m2.getReceiveTime();
+				if (diff == 0) {
+					return 0;
+				}
+				return (diff < 0 ? -1 : 1);
 			}
-			return (diff < 0 ? -1 : 1);
-		/* add more queue modes here */
-		default:
-			throw new SimError("Unknown queue mode " + sendQueueMode);
+			/* add more queue modes here */
+			default -> throw new SimError("Unknown queue mode " + sendQueueMode);
 		}
 	}
 
@@ -634,7 +628,7 @@ public abstract class MessageRouter {
 	public void addApplication(Application app) {
 		if (!this.applications.containsKey(app.getAppID())) {
 			this.applications.put(app.getAppID(),
-					new LinkedList<Application>());
+					new LinkedList<>());
 		}
 		this.applications.get(app.getAppID()).add(app);
 	}
@@ -647,7 +641,7 @@ public abstract class MessageRouter {
 	 * @return		A list of all applications that want to receive the message.
 	 */
 	public Collection<Application> getApplications(String ID) {
-		LinkedList<Application>	apps = new LinkedList<Application>();
+		LinkedList<Application>	apps = new LinkedList<>();
 		// Applications that match
 		Collection<Application> tmp = this.applications.get(ID);
 		if (tmp != null) {
