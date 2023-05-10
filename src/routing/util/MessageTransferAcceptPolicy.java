@@ -16,6 +16,8 @@ import core.Message;
 import core.ModuleCommunicationBus;
 import core.Settings;
 
+// TODO：在这添加黑名单
+
 /**
  * <P> Message transfer accepting policy module. Can be used to decide whether
  * certain messages should be accepted or not. Shared by a whole node group, but
