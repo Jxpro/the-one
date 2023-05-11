@@ -349,6 +349,7 @@ public class MaxPropRouterWithEstimation extends ActiveRouter {
 	 */
 	@Override
 	protected void transferDone(Connection con) {
+		super.transferDone(con);
 		Message m = con.getMessage();
 		/* was the message delivered to the final recipient? */
 		if (m.getTo() == con.getOtherNode(getHost())) {

@@ -140,6 +140,7 @@ public class WaveRouter extends ActiveRouter {
 
 	@Override
 	protected void transferDone(Connection con) {
+		super.transferDone(con);
 		/* remove from custody messages (if it was there) */
 		this.custodyMessages.remove(con.getMessage().getId());
 	}

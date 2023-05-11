@@ -209,6 +209,7 @@ public class MaxPropRouter extends ActiveRouter {
 	 */
 	@Override
 	protected void transferDone(Connection con) {
+		super.transferDone(con);
 		Message m = con.getMessage();
 		String id = m.getId();
 		DTNHost recipient = con.getOtherNode(getHost());

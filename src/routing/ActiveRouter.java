@@ -10,18 +10,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import core.*;
 import routing.util.EnergyModel;
 import routing.util.MessageTransferAcceptPolicy;
 import routing.util.RoutingInfo;
 import util.Tuple;
-
-import core.Connection;
-import core.DTNHost;
-import core.Message;
-import core.MessageListener;
-import core.NetworkInterface;
-import core.Settings;
-import core.SimClock;
 
 /**
  * Superclass of active routers. Contains convenience methods (e.g.
@@ -94,8 +87,22 @@ public abstract class ActiveRouter extends MessageRouter {
 	 */
 	@Override
 	public void changedConnection(Connection con) {
-		// TODO：在这里开始或完成一次相遇记录，通过con.isUp()判断是开始还是完成
-		// this.getHost().getComBus().getProperty()
+		DTNHost fromNode = this.getHost();
+		DTNHost toNode = con.getOtherNode(fromNode);
+		if (con.isUp()) {
+			EncounterRecord.createEncounterRecord(con, fromNode, toNode);
+		} else {
+			// 如果连接关闭和消息传输完成的时间一致，那么最后消息需要在此处处理
+			if(con.isTransferring()
+					&& con.isMessageTransferred()
+					&& fromNode.getIncompleteER(con.getConnectionId()) != null
+					&& toNode.getIncompleteER(con.getConnectionId()) != null){
+				Message msg = con.getMessage();
+				fromNode.getIncompleteER(con.getConnectionId()).addSentMessage(msg);
+				toNode.getIncompleteER(con.getConnectionId()).addReceivedMessage(msg);
+			}
+			EncounterRecord.finalizeEncounterRecord(con, fromNode, toNode);
+		}
 
 		if (this.energy != null && con.isUp() && !con.isInitiator(getHost())) {
 			this.energy.reduceDiscoveryEnergy();
@@ -649,7 +656,12 @@ public abstract class ActiveRouter extends MessageRouter {
 	 * @param con The connection whose transfer was finalized
 	 */
 	protected void transferDone(Connection con) {
-		// TODO：在这里添加相遇记录中，双方的消息列表，借助con参数；同时在复写的方法中，调用super.transferDone(con)
+		if (!con.isUp()) return;
+		DTNHost fromNode = this.getHost();
+		DTNHost toNode = con.getOtherNode(fromNode);
+		Message msg = con.getMessage();
+		fromNode.getIncompleteER(con.getConnectionId()).addSentMessage(msg);
+		toNode.getIncompleteER(con.getConnectionId()).addReceivedMessage(msg);
 	}
 
 	@Override

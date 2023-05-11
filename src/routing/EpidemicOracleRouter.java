@@ -147,6 +147,7 @@ public class EpidemicOracleRouter extends ActiveRouter {
 
 	@Override
 	protected void transferDone(Connection con) {
+		super.transferDone(con);
 		Message m = con.getMessage();
 
 		if (m == null) {

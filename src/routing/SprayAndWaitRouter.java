@@ -136,6 +136,7 @@ public class SprayAndWaitRouter extends ActiveRouter {
 	 */
 	@Override
 	protected void transferDone(Connection con) {
+		super.transferDone(con);
 		Integer nrofCopies;
 		String msgId = con.getMessage().getId();
 		/* get this router's copy of the message */
