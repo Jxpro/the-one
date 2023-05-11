@@ -10,6 +10,7 @@ import routing.MessageRouter;
  * A connection between two DTN nodes.
  */
 public abstract class Connection {
+	private static int nextId = 0;
 	protected DTNHost toNode;
 	protected NetworkInterface toInterface;
 	protected DTNHost fromNode;
@@ -20,6 +21,7 @@ public abstract class Connection {
 	protected Message msgOnFly;
 	/** how many bytes this connection has transferred */
 	protected int bytesTransferred;
+	private final int conId;
 
 	/**
 	 * Creates a new connection between nodes and sets the connection
@@ -31,6 +33,7 @@ public abstract class Connection {
 	 */
 	public Connection(DTNHost fromNode, NetworkInterface fromInterface,
 			DTNHost toNode, NetworkInterface toInterface) {
+		this.conId = getNextId();
 		this.fromNode = fromNode;
 		this.fromInterface = fromInterface;
 		this.toNode = toNode;
@@ -39,6 +42,9 @@ public abstract class Connection {
 		this.bytesTransferred = 0;
 	}
 
+	private synchronized static int getNextId() {
+		return nextId++;
+	}
 
 	/**
 	 * Returns true if the connection is up
@@ -214,6 +220,10 @@ public abstract class Connection {
 		else {
 			return this.fromInterface;
 		}
+	}
+
+	public int getConnectionId() {
+		return conId;
 	}
 
 	/**
