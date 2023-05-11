@@ -21,6 +21,7 @@ import static core.Constants.DEBUG;
 public class DTNHost implements Comparable<DTNHost> {
 	private static int nextAddress = 0;
 	private final int address;
+	private int nextSequence = 0;
 
 	private Coord location; 	// where is the host
 	private Coord destination;	// where is it going
@@ -60,6 +61,7 @@ public class DTNHost implements Comparable<DTNHost> {
 		this.address = getNextAddress();
 		this.name = groupId+address;
 		this.net = new ArrayList<>();
+		this.nextSequence = 0;
 
 		for (NetworkInterface i : interf) {
 			NetworkInterface ni = i.replicate();
@@ -98,6 +100,10 @@ public class DTNHost implements Comparable<DTNHost> {
 	 */
 	private synchronized static int getNextAddress() {
 		return nextAddress++;
+	}
+
+	public synchronized int getNextSequence() {
+		return nextSequence++;
 	}
 
 	/**
