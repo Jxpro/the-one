@@ -4,9 +4,8 @@
  */
 package core;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.security.*;
+import java.util.*;
 
 import movement.MovementModel;
 import movement.Path;
@@ -20,8 +19,10 @@ import static core.Constants.DEBUG;
  */
 public class DTNHost implements Comparable<DTNHost> {
 	private static int nextAddress = 0;
+	private static final KeyPairGenerator keyGen;
 	private final int address;
-	private int nextSequence = 0;
+	private int nextSequence;
+	private int sizeOfEW;
 
 	private Coord location; 	// where is the host
 	private Coord destination;	// where is it going
@@ -35,9 +36,18 @@ public class DTNHost implements Comparable<DTNHost> {
 	private final List<MessageListener> msgListeners;
 	private final List<MovementListener> movListeners;
 	private final List<NetworkInterface> net;
+	private final List<EncounterRecord> encounterWindow;
+	private final Map<Integer, EncounterRecord> incompleteERs;
+	private final PublicKey publicKey;
+	private final PrivateKey privateKey;
 	private final ModuleCommunicationBus comBus;
 
 	static {
+		try {
+			keyGen = KeyPairGenerator.getInstance("EC");
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
 		DTNSim.registerForReset(DTNHost.class.getCanonicalName());
 		reset();
 	}
@@ -55,13 +65,20 @@ public class DTNHost implements Comparable<DTNHost> {
 			List<MovementListener> movLs,
 			String groupId, List<NetworkInterface> interf,
 			ModuleCommunicationBus comBus,
-			MovementModel mmProto, MessageRouter mRouterProto) {
+			MovementModel mmProto, MessageRouter mRouterProto,
+			int sizeOfEW) {
 		this.comBus = comBus;
 		this.location = new Coord(0,0);
 		this.address = getNextAddress();
 		this.name = groupId+address;
 		this.net = new ArrayList<>();
 		this.nextSequence = 0;
+		this.sizeOfEW = sizeOfEW;
+		this.encounterWindow = new ArrayList<>();
+		this.incompleteERs = new HashMap<>();
+		KeyPair keyPair = keyGen.generateKeyPair();
+		this.publicKey = keyPair.getPublic();
+		this.privateKey = keyPair.getPrivate();
 
 		for (NetworkInterface i : interf) {
 			NetworkInterface ni = i.replicate();
@@ -545,4 +562,35 @@ public class DTNHost implements Comparable<DTNHost> {
 		return this.getAddress() - h.getAddress();
 	}
 
+	public PublicKey getPublicKey() {
+		return publicKey;
+	}
+
+	public PrivateKey getPrivateKey() {
+		return privateKey;
+	}
+
+	public void putIncompleteER(int connectionId, EncounterRecord er){
+		incompleteERs.put(connectionId, er);
+	}
+
+	public EncounterRecord getIncompleteER(int connectionId){
+		return incompleteERs.get(connectionId);
+	}
+
+	public void removeIncompleteER(int connectionId){
+		incompleteERs.remove(connectionId);
+	}
+
+	public void addEncounterRecord(EncounterRecord er){
+		if (encounterWindow.size() == sizeOfEW)
+			encounterWindow.remove(0);
+		encounterWindow.add(er);
+	}
+
+	public void evaluateEncounterWindow(){
+		for (EncounterRecord er : encounterWindow){
+			// TODO：计算指标
+		}
+	}
 }

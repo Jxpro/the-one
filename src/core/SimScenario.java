@@ -21,7 +21,6 @@ import routing.MessageRouter;
  * simulation run.
  */
 public class SimScenario implements Serializable {
-
 	/** a way to get a hold of this... */
 	private static SimScenario myinstance=null;
 
@@ -29,6 +28,8 @@ public class SimScenario implements Serializable {
 	public static final String SCENARIO_NS = "Scenario";
 	/** number of host groups -setting id ({@value})*/
 	public static final String NROF_GROUPS_S = "nrofHostGroups";
+	/** size of encounter window -setting id ({@value})*/
+	private static final String ENCOUNTER_WINDOW_S = "sizeOfEW";
 	/** number of interface types -setting id ({@value})*/
 	public static final String NROF_INTTYPES_S = "nrofInterfaceTypes";
 	/** scenario name -setting id ({@value})*/
@@ -329,6 +330,7 @@ public class SimScenario implements Serializable {
 			String gid = s.getSetting(GROUP_ID_S);
 			int nrofHosts = s.getInt(NROF_HOSTS_S);
 			int nrofInterfaces = s.getInt(NROF_INTERF_S);
+			int sizeOfEW = s.getInt(ENCOUNTER_WINDOW_S);
 			int appCount;
 
 			// creates prototypes of MessageRouter and MovementModel
@@ -397,7 +399,7 @@ public class SimScenario implements Serializable {
 				// new instances of movement model and message router
 				DTNHost host = new DTNHost(this.messageListeners,
 						this.movementListeners,	gid, interfaces, comBus,
-						mmProto, mRouterProto);
+						mmProto, mRouterProto, sizeOfEW);
 				hosts.add(host);
 			}
 		}

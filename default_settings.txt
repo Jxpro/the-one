@@ -62,6 +62,8 @@ Group.interface1 = btInterface
 Group.speed = 0.5, 1.5
 # Message TTL of 300 minutes (5 hours)
 Group.msgTtl = 300
+# size of the encounter window
+Group.sizeOfEW = 50
 
 Group.nrofHosts = 40
 

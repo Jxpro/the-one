@@ -61,7 +61,8 @@ public class DTNHostTest extends TestCase {
             new ArrayList<NetworkInterface>(),
             null,
             makeMovementModel(),
-            makeMessageRouter());
+            makeMessageRouter(),
+            50);
 
     // Tests
     assertFalse("Radio reported as active.", host.isRadioActive());
