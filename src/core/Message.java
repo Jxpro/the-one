@@ -4,11 +4,7 @@
  */
 package core;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A message that is created at a node or passed between nodes.
@@ -360,4 +356,13 @@ public class Message implements Comparable<Message> {
 		this.appID = appID;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Message message = (Message) o;
+
+		return Objects.equals(id, message.id);
+	}
 }

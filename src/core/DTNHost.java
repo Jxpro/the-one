@@ -594,8 +594,7 @@ public class DTNHost implements Comparable<DTNHost> {
         int receivedAndSent = 0;
         int selfSent = 0;
         int sent = 0;
-        for (int i = encounterWindow.size() - 1; i >= 0; i--) {
-            EncounterRecord er = encounterWindow.get(i);
+        for (EncounterRecord er: encounterWindow) {
             if (excludedNodes.contains(er.getPeerNode().name)) continue;
             messages.addAll(er.getReceivedMessages());
             sent += er.getSentMessages().size();
@@ -608,8 +607,12 @@ public class DTNHost implements Comparable<DTNHost> {
                 }
             }
         }
-        results.put("rr", receivedAndSent / (double) messages.size());
-        results.put("sfr", selfSent / (double) sent);
+        results.put("RR", receivedAndSent / (double) messages.size());
+        results.put("SFR", selfSent / (double) sent);
+		results.put("rs", (double) receivedAndSent);
+		results.put("rns", (double) messages.size());
+		results.put("sent", (double) sent);
+		results.put("selfSent", (double) selfSent);
         return results;
     }
 }

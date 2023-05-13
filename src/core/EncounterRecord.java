@@ -40,6 +40,11 @@ public class EncounterRecord {
             // 如果不存在，则已经完成
             return;
         }
+        if (thisNode.getIncompleteER(connectionId).getSentMessages().size() == 0
+                && thisNode.getIncompleteER(connectionId).getReceivedMessages().size()==0) {
+            // 如果没有发送和接收消息，则没有意义，不需要创建记录
+            return;
+        }
         int fromSequence = thisNode.getNextSequence();
         int toSequence = peerNode.getNextSequence();
         double time = SimClock.getTime();
@@ -122,6 +127,9 @@ public class EncounterRecord {
     }
 
     public String toString() {
-        return thisNode + (this.time == 0 ? " encounter " : " encountered ") + peerNode + (this.time != 0 ? " at " + this.time : "");
+        if (this.time == 0)
+            return thisNode + " encounter "  + peerNode;
+        else
+            return thisNode + " encountered " + peerNode + " at " + this.time + ", sending " + this.sentMessages.size() + " messages and receiving " + this.receivedMessages.size() + " messages.";
     }
 }
