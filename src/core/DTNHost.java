@@ -588,9 +588,28 @@ public class DTNHost implements Comparable<DTNHost> {
 		encounterWindow.add(er);
 	}
 
-	public void evaluateEncounterWindow(){
-		for (EncounterRecord er : encounterWindow){
-			// TODO：计算指标
-		}
-	}
+    public Map<String, Double> evaluateEncounterWindow(List<String> excludedNodes) {
+        List<Message> messages = new ArrayList<>();
+        Map<String, Double> results = new HashMap<>();
+        int receivedAndSent = 0;
+        int selfSent = 0;
+        int sent = 0;
+        for (int i = encounterWindow.size() - 1; i >= 0; i--) {
+            EncounterRecord er = encounterWindow.get(i);
+            if (excludedNodes.contains(er.getPeerNode().name)) continue;
+            messages.addAll(er.getReceivedMessages());
+            sent += er.getSentMessages().size();
+            for (Message m : er.getSentMessages()) {
+                if (m.getFrom() == this) {
+                    selfSent += 1;
+                }
+                if (messages.contains(m)) {
+                    receivedAndSent += 1;
+                }
+            }
+        }
+        results.put("rr", receivedAndSent / (double) messages.size());
+        results.put("sfr", selfSent / (double) sent);
+        return results;
+    }
 }
