@@ -6,47 +6,47 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EncounterRecord {
-    private final DTNHost fromNode;
-    private final DTNHost toNode;
-    private int fromSequence;
-    private int toSequence;
+    private final DTNHost thisNode;
+    private final DTNHost peerNode;
+    private int thisSequence;
+    private int peerSequence;
     private double time;
     private final List<Message> sentMessages;
     private final List<Message> receivedMessages;
 
-    private String fromSignature;
-    private String toSignature;
+    private String thisSignature;
+    private String peerSignature;
 
-    public EncounterRecord(DTNHost fromNode, DTNHost toNode) {
-        this.fromNode = fromNode;
-        this.toNode = toNode;
+    public EncounterRecord(DTNHost thisNode, DTNHost peerNode) {
+        this.thisNode = thisNode;
+        this.peerNode = peerNode;
         this.sentMessages = new ArrayList<>();
         this.receivedMessages = new ArrayList<>();
     }
 
-    public static void createEncounterRecord(Connection con, DTNHost fromNode, DTNHost toNode) {
+    public static void createEncounterRecord(Connection con, DTNHost thisNode, DTNHost peerNode) {
         int connectionId = con.getConnectionId();
-        if (fromNode.getIncompleteER(connectionId) != null || toNode.getIncompleteER(connectionId) != null) {
+        if (thisNode.getIncompleteER(connectionId) != null || peerNode.getIncompleteER(connectionId) != null) {
             // 如果存在，则已经创建
             return;
         }
-        fromNode.putIncompleteER(connectionId, new EncounterRecord(fromNode, toNode));
-        toNode.putIncompleteER(connectionId, new EncounterRecord(toNode, fromNode));
+        thisNode.putIncompleteER(connectionId, new EncounterRecord(thisNode, peerNode));
+        peerNode.putIncompleteER(connectionId, new EncounterRecord(peerNode, thisNode));
     }
 
-    public static void finalizeEncounterRecord(Connection con, DTNHost fromNode, DTNHost toNode) {
+    public static void finalizeEncounterRecord(Connection con, DTNHost thisNode, DTNHost peerNode) {
         int connectionId = con.getConnectionId();
-        if (fromNode.getIncompleteER(connectionId) == null || toNode.getIncompleteER(connectionId) == null) {
+        if (thisNode.getIncompleteER(connectionId) == null || peerNode.getIncompleteER(connectionId) == null) {
             // 如果不存在，则已经完成
             return;
         }
-        int fromSequence = fromNode.getNextSequence();
-        int toSequence = toNode.getNextSequence();
+        int fromSequence = thisNode.getNextSequence();
+        int toSequence = peerNode.getNextSequence();
         double time = SimClock.getTime();
-        fromNode.addEncounterRecord(fromNode.getIncompleteER(connectionId).finalizeER(fromSequence, toSequence, time));
-        toNode.addEncounterRecord(toNode.getIncompleteER(connectionId).finalizeER(toSequence, fromSequence, time));
-        fromNode.removeIncompleteER(connectionId);
-        toNode.removeIncompleteER(connectionId);
+        thisNode.addEncounterRecord(thisNode.getIncompleteER(connectionId).finalizeER(fromSequence, toSequence, time));
+        peerNode.addEncounterRecord(peerNode.getIncompleteER(connectionId).finalizeER(toSequence, fromSequence, time));
+        thisNode.removeIncompleteER(connectionId);
+        peerNode.removeIncompleteER(connectionId);
     }
 
     public void addSentMessage(Message message) {
@@ -57,18 +57,18 @@ public class EncounterRecord {
         this.receivedMessages.add(message);
     }
 
-    public EncounterRecord finalizeER(int fromSequence, int toSequence, double time) {
+    public EncounterRecord finalizeER(int thisSequence, int peerSequence, double time) {
         // 设置剩下的属性
-        this.fromSequence = fromSequence;
-        this.toSequence = toSequence;
+        this.thisSequence = thisSequence;
+        this.peerSequence = peerSequence;
         this.time = time;
 
         // 拼接字符串用于计算hash
         StringBuilder builder = new StringBuilder();
-        builder.append(this.fromNode.toString()).append(";");
-        builder.append(this.toNode.toString()).append(";");
-        builder.append(this.fromSequence).append(";");
-        builder.append(this.toSequence).append(";");
+        builder.append(this.thisNode.toString()).append(";");
+        builder.append(this.peerNode.toString()).append(";");
+        builder.append(this.thisSequence).append(";");
+        builder.append(this.peerSequence).append(";");
         builder.append(this.time).append(";");
         for (Message message : this.sentMessages) {
             builder.append(message.toString()).append(";");
@@ -79,26 +79,26 @@ public class EncounterRecord {
 
         // 计算签名
         String content = builder.toString();
-        this.fromSignature = Crypto.sign(content, fromNode.getPrivateKey());
-        this.toSignature = Crypto.sign(content, toNode.getPrivateKey());
+        this.thisSignature = Crypto.sign(content, thisNode.getPrivateKey());
+        this.peerSignature = Crypto.sign(content, peerNode.getPrivateKey());
 
         return this;
     }
 
-    public DTNHost getFromNode() {
-        return fromNode;
+    public DTNHost getThisNode() {
+        return thisNode;
     }
 
-    public DTNHost getToNode() {
-        return toNode;
+    public DTNHost getPeerNode() {
+        return peerNode;
     }
 
-    public int getFromSequence() {
-        return fromSequence;
+    public int getThisSequence() {
+        return thisSequence;
     }
 
-    public int getToSequence() {
-        return toSequence;
+    public int getPeerSequence() {
+        return peerSequence;
     }
 
     public double getTime() {
@@ -113,15 +113,15 @@ public class EncounterRecord {
         return receivedMessages;
     }
 
-    public String getFromSignature() {
-        return fromSignature;
+    public String getThisSignature() {
+        return thisSignature;
     }
 
-    public String getToSignature() {
-        return toSignature;
+    public String getPeerSignature() {
+        return peerSignature;
     }
 
     public String toString() {
-        return fromNode + (this.time == 0 ? " encounter " : " encountered ") + toNode + (this.time != 0 ? " at " + this.time : "");
+        return thisNode + (this.time == 0 ? " encounter " : " encountered ") + peerNode + (this.time != 0 ? " at " + this.time : "");
     }
 }

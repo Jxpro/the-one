@@ -87,21 +87,21 @@ public abstract class ActiveRouter extends MessageRouter {
 	 */
 	@Override
 	public void changedConnection(Connection con) {
-		DTNHost fromNode = this.getHost();
-		DTNHost toNode = con.getOtherNode(fromNode);
+		DTNHost thisNode = this.getHost();
+		DTNHost peerNode = con.getOtherNode(thisNode);
 		if (con.isUp()) {
-			EncounterRecord.createEncounterRecord(con, fromNode, toNode);
+			EncounterRecord.createEncounterRecord(con, thisNode, peerNode);
 		} else {
 			// 如果连接关闭和消息传输完成的时间一致，那么最后消息需要在此处处理
 			if(con.isTransferring()
 					&& con.isMessageTransferred()
-					&& fromNode.getIncompleteER(con.getConnectionId()) != null
-					&& toNode.getIncompleteER(con.getConnectionId()) != null){
+					&& thisNode.getIncompleteER(con.getConnectionId()) != null
+					&& peerNode.getIncompleteER(con.getConnectionId()) != null){
 				Message msg = con.getMessage();
-				fromNode.getIncompleteER(con.getConnectionId()).addSentMessage(msg);
-				toNode.getIncompleteER(con.getConnectionId()).addReceivedMessage(msg);
+				thisNode.getIncompleteER(con.getConnectionId()).addSentMessage(msg);
+				peerNode.getIncompleteER(con.getConnectionId()).addReceivedMessage(msg);
 			}
-			EncounterRecord.finalizeEncounterRecord(con, fromNode, toNode);
+			EncounterRecord.finalizeEncounterRecord(con, thisNode, peerNode);
 		}
 
 		if (this.energy != null && con.isUp() && !con.isInitiator(getHost())) {
@@ -657,11 +657,11 @@ public abstract class ActiveRouter extends MessageRouter {
 	 */
 	protected void transferDone(Connection con) {
 		if (!con.isUp()) return;
-		DTNHost fromNode = this.getHost();
-		DTNHost toNode = con.getOtherNode(fromNode);
+		DTNHost thisNode = this.getHost();
+		DTNHost peerNode = con.getOtherNode(thisNode);
 		Message msg = con.getMessage();
-		fromNode.getIncompleteER(con.getConnectionId()).addSentMessage(msg);
-		toNode.getIncompleteER(con.getConnectionId()).addReceivedMessage(msg);
+		thisNode.getIncompleteER(con.getConnectionId()).addSentMessage(msg);
+		peerNode.getIncompleteER(con.getConnectionId()).addReceivedMessage(msg);
 	}
 
 	@Override

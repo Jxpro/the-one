@@ -22,7 +22,7 @@ public class DTNHost implements Comparable<DTNHost> {
 	private static final KeyPairGenerator keyGen;
 	private final int address;
 	private int nextSequence;
-	private int sizeOfEW;
+	private final int sizeOfEW;
 
 	private Coord location; 	// where is the host
 	private Coord destination;	// where is it going
