@@ -18,6 +18,7 @@ import routing.MessageRouter;
 import routing.PassiveRouter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import junit.framework.TestCase;
 
@@ -62,7 +63,7 @@ public class DTNHostTest extends TestCase {
             null,
             makeMovementModel(),
             makeMessageRouter(),
-            50);
+            new HashMap<>());
 
     // Tests
     assertFalse("Radio reported as active.", host.isRadioActive());

@@ -5,6 +5,7 @@
 package test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import movement.MovementModel;
@@ -114,7 +115,7 @@ public class TestUtils {
 		List<NetworkInterface> li = new ArrayList<NetworkInterface>();
 		li.add(ni);
 		DTNHost host = new DTNHost(msgListeners, null, groupId,
-				li, comBus, mmProto, mr, 50);
+				li, comBus, mmProto, mr, new HashMap<>());
 		if (name != null) {
 			host.setName(name);
 		}

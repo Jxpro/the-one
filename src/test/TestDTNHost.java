@@ -4,6 +4,7 @@
  */
 package test;
 
+import java.util.HashMap;
 import java.util.List;
 
 import routing.PassiveRouter;
@@ -39,7 +40,7 @@ public class TestDTNHost extends DTNHost {
 				new StationaryMovement(new Coord(0,0)),
 				new PassiveRouter(
 						(testSettings == null ? new TestSettings() :
-							testSettings)), 50);
+							testSettings)), new HashMap<>());
 	}
 
 	@Override

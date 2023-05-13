@@ -279,6 +279,10 @@ public class MessageTransferAcceptPolicy {
 	 */
 	public boolean acceptSending(DTNHost from, DTNHost to, Connection con,
 			Message m) {
+		if (from.isBlacklisted(to) || to.isBlacklisted(from)) {
+			return false;
+		}
+
 		if (!checkMcbConditions(from.getComBus(), false)) {
 			return false;
 		}

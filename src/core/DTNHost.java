@@ -23,6 +23,9 @@ public class DTNHost implements Comparable<DTNHost> {
 	private final int address;
 	private int nextSequence;
 	private final int sizeOfEW;
+	private final int thresholdFXS;
+	private final double thresholdRR;
+	private final double thresholdSFR;
 
 	private Coord location; 	// where is the host
 	private Coord destination;	// where is it going
@@ -37,7 +40,9 @@ public class DTNHost implements Comparable<DTNHost> {
 	private final List<MovementListener> movListeners;
 	private final List<NetworkInterface> net;
 	private final List<EncounterRecord> encounterWindow;
+	private final List<String> blackList;
 	private final Map<Integer, EncounterRecord> incompleteERs;
+	private final Map<String, Integer> reputations;
 	private final PublicKey publicKey;
 	private final PrivateKey privateKey;
 	private final ModuleCommunicationBus comBus;
@@ -66,16 +71,21 @@ public class DTNHost implements Comparable<DTNHost> {
 			String groupId, List<NetworkInterface> interf,
 			ModuleCommunicationBus comBus,
 			MovementModel mmProto, MessageRouter mRouterProto,
-			int sizeOfEW) {
+			Map<String, Double> additionalProps) {
 		this.comBus = comBus;
 		this.location = new Coord(0,0);
 		this.address = getNextAddress();
 		this.name = groupId+address;
 		this.net = new ArrayList<>();
 		this.nextSequence = 0;
-		this.sizeOfEW = sizeOfEW;
+		this.sizeOfEW = additionalProps.get("sizeOfEW").intValue();
+		this.thresholdFXS = additionalProps.get("ThresholdFXS").intValue();
+		this.thresholdRR = additionalProps.get("ThresholdRR");
+		this.thresholdSFR = additionalProps.get("ThresholdSFR");
 		this.encounterWindow = new ArrayList<>();
 		this.incompleteERs = new HashMap<>();
+		this.blackList = new ArrayList<>();
+		this.reputations = new HashMap<>();
 		KeyPair keyPair = keyGen.generateKeyPair();
 		this.publicKey = keyPair.getPublic();
 		this.privateKey = keyPair.getPrivate();
@@ -615,4 +625,39 @@ public class DTNHost implements Comparable<DTNHost> {
 		results.put("selfSent", (double) selfSent);
         return results;
     }
+
+	public void compareThresholds(DTNHost node, Map<String, Double> results) {
+		String name = node.name;
+		boolean normal = true;
+		if(results.get("RR") < thresholdRR) {
+			changeReputation(name, 2, false);
+			normal = false;
+		}
+		if (results.get("SFR") > thresholdSFR) {
+			changeReputation(name, 3, false);
+			normal = false;
+		}
+		if (normal) {
+			changeReputation(name, 1, true);
+		}
+	}
+
+	private void changeReputation(String name, int value, boolean advance) {
+		reputations.putIfAbsent(name, 50);
+		int newValue = reputations.get(name) + (advance ? value : -value);
+		if (newValue > 100) newValue = 100;
+		if (newValue < -50) newValue = -50;
+		if (newValue < 0 && !blackList.contains(name)) {
+			newValue = -50;
+			blackList.add(name);
+		}
+		if (newValue >= 0) {
+			blackList.remove(name);
+		}
+		reputations.put(name, newValue);
+	}
+
+	public boolean isBlacklisted(DTNHost peerNode) {
+		return blackList.contains(peerNode.name);
+	}
 }

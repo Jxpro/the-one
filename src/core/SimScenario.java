@@ -9,7 +9,9 @@ import input.EventQueueHandler;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import movement.MapBasedMovement;
 import movement.MovementModel;
@@ -30,6 +32,9 @@ public class SimScenario implements Serializable {
 	public static final String NROF_GROUPS_S = "nrofHostGroups";
 	/** size of encounter window -setting id ({@value})*/
 	private static final String ENCOUNTER_WINDOW_S = "sizeOfEW";
+	private static final String Threshold_RR_S = "ThRR";
+	private static final String Threshold_SFR_S = "ThSFR";
+	private static final String Threshold_FXS_S = "ThFXS";
 	/** number of interface types -setting id ({@value})*/
 	public static final String NROF_INTTYPES_S = "nrofInterfaceTypes";
 	/** scenario name -setting id ({@value})*/
@@ -330,8 +335,17 @@ public class SimScenario implements Serializable {
 			String gid = s.getSetting(GROUP_ID_S);
 			int nrofHosts = s.getInt(NROF_HOSTS_S);
 			int nrofInterfaces = s.getInt(NROF_INTERF_S);
-			int sizeOfEW = s.getInt(ENCOUNTER_WINDOW_S);
 			int appCount;
+			Map<String, Double> additionalProps = new HashMap<>();
+
+			additionalProps.put("sizeOfEW", s.contains(ENCOUNTER_WINDOW_S) ?
+					s.getDouble(ENCOUNTER_WINDOW_S) : 100);
+			additionalProps.put("ThresholdRR", s.contains(Threshold_RR_S) ?
+					s.getDouble(Threshold_RR_S) : 4.0);
+			additionalProps.put("ThresholdSFR", s.contains(Threshold_SFR_S) ?
+					s.getDouble(Threshold_SFR_S) : 0.1);
+			additionalProps.put("ThresholdFXS", s.contains(Threshold_FXS_S) ?
+					s.getDouble(Threshold_FXS_S) : 2000);
 
 			// creates prototypes of MessageRouter and MovementModel
 			MovementModel mmProto =
@@ -399,7 +413,7 @@ public class SimScenario implements Serializable {
 				// new instances of movement model and message router
 				DTNHost host = new DTNHost(this.messageListeners,
 						this.movementListeners,	gid, interfaces, comBus,
-						mmProto, mRouterProto, sizeOfEW);
+						mmProto, mRouterProto, additionalProps);
 				hosts.add(host);
 			}
 		}

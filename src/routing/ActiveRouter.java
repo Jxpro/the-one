@@ -91,6 +91,7 @@ public abstract class ActiveRouter extends MessageRouter {
 		DTNHost peerNode = con.getOtherNode(thisNode);
 		if (con.isUp()) {
 			EncounterRecord.createEncounterRecord(con, thisNode, peerNode);
+			thisNode.compareThresholds(peerNode, peerNode.evaluateEncounterWindow(new ArrayList<>()));
 		} else {
 			// 如果连接关闭和消息传输完成的时间一致，那么最后消息需要在此处处理
 			if(con.isTransferring()
@@ -673,5 +674,4 @@ public abstract class ActiveRouter extends MessageRouter {
 		}
 		return top;
 	}
-
 }

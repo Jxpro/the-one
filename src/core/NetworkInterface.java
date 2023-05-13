@@ -317,9 +317,6 @@ abstract public class NetworkInterface implements ModuleCommunicationListener {
 	 * @param anotherInterface The interface to connect to
 	 */
 	protected void connect(Connection con, NetworkInterface anotherInterface) {
-		Map<String, Double> res = this.getHost().evaluateEncounterWindow(new ArrayList<>());
-		// System.out.println(res);
-		// TODO: 比较阈值，降低信誉值，比较黑名单
 		this.connections.add(con);
 		notifyConnectionListeners(CON_UP, anotherInterface.getHost());
 
