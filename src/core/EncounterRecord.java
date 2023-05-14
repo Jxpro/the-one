@@ -40,16 +40,15 @@ public class EncounterRecord {
             // 如果不存在，则已经完成
             return;
         }
-        if (thisNode.getIncompleteER(connectionId).getSentMessages().size() == 0
-                && thisNode.getIncompleteER(connectionId).getReceivedMessages().size()==0) {
-            // 如果没有发送和接收消息，则没有意义，不需要创建记录
-            return;
+        if (thisNode.getIncompleteER(connectionId).getSentMessages().size() != 0
+                || thisNode.getIncompleteER(connectionId).getReceivedMessages().size()!=0) {
+            // 如果有发送和接收消息，才有意义，需要创建记录
+            int fromSequence = thisNode.getNextSequence();
+            int toSequence = peerNode.getNextSequence();
+            double time = SimClock.getTime();
+            thisNode.addEncounterRecord(thisNode.getIncompleteER(connectionId).finalizeER(fromSequence, toSequence, time));
+            peerNode.addEncounterRecord(peerNode.getIncompleteER(connectionId).finalizeER(toSequence, fromSequence, time));
         }
-        int fromSequence = thisNode.getNextSequence();
-        int toSequence = peerNode.getNextSequence();
-        double time = SimClock.getTime();
-        thisNode.addEncounterRecord(thisNode.getIncompleteER(connectionId).finalizeER(fromSequence, toSequence, time));
-        peerNode.addEncounterRecord(peerNode.getIncompleteER(connectionId).finalizeER(toSequence, fromSequence, time));
         thisNode.removeIncompleteER(connectionId);
         peerNode.removeIncompleteER(connectionId);
     }

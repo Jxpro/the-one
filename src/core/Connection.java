@@ -236,5 +236,8 @@ public abstract class Connection {
 				" from " + this.msgFromNode : "");
 	}
 
+	public DTNHost getMsgFromNode() {
+		return msgFromNode;
+	}
 }
 

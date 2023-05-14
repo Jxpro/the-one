@@ -600,6 +600,7 @@ public class DTNHost implements Comparable<DTNHost> {
 
     public Map<String, Double> evaluateEncounterWindow(List<String> excludedNodes) {
         List<Message> messages = new ArrayList<>();
+        List<Message> remainMessages = new ArrayList<>();
         Map<String, Double> results = new HashMap<>();
         int receivedAndSent = 0;
         int selfSent = 0;
@@ -614,9 +615,16 @@ public class DTNHost implements Comparable<DTNHost> {
                 }
                 if (messages.contains(m)) {
                     receivedAndSent += 1;
+					messages.remove(m);
                 }
             }
         }
+		for (Message m : messages) {
+			if(!m.getTo().name.equals(this.name)) {
+				remainMessages.add(m);
+			}
+		}
+		messages = remainMessages;
         results.put("RR", receivedAndSent / (double) messages.size());
         results.put("SFR", selfSent / (double) sent);
 		results.put("rs", (double) receivedAndSent);

@@ -341,11 +341,11 @@ public class SimScenario implements Serializable {
 			additionalProps.put("sizeOfEW", s.contains(ENCOUNTER_WINDOW_S) ?
 					s.getDouble(ENCOUNTER_WINDOW_S) : 100);
 			additionalProps.put("ThresholdRR", s.contains(Threshold_RR_S) ?
-					s.getDouble(Threshold_RR_S) : 4.0);
+					s.getDouble(Threshold_RR_S) : 0);
 			additionalProps.put("ThresholdSFR", s.contains(Threshold_SFR_S) ?
-					s.getDouble(Threshold_SFR_S) : 0.1);
+					s.getDouble(Threshold_SFR_S) : 1);
 			additionalProps.put("ThresholdFXS", s.contains(Threshold_FXS_S) ?
-					s.getDouble(Threshold_FXS_S) : 2000);
+					s.getDouble(Threshold_FXS_S) : 10000);
 
 			// creates prototypes of MessageRouter and MovementModel
 			MovementModel mmProto =

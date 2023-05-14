@@ -99,8 +99,10 @@ public abstract class ActiveRouter extends MessageRouter {
 					&& thisNode.getIncompleteER(con.getConnectionId()) != null
 					&& peerNode.getIncompleteER(con.getConnectionId()) != null){
 				Message msg = con.getMessage();
-				thisNode.getIncompleteER(con.getConnectionId()).addSentMessage(msg);
-				peerNode.getIncompleteER(con.getConnectionId()).addReceivedMessage(msg);
+				DTNHost msgFromNode = con.getMsgFromNode();
+				DTNHost msgToNode = con.getOtherNode(msgFromNode);
+				msgFromNode.getIncompleteER(con.getConnectionId()).addSentMessage(msg);
+				msgToNode.getIncompleteER(con.getConnectionId()).addReceivedMessage(msg);
 			}
 			EncounterRecord.finalizeEncounterRecord(con, thisNode, peerNode);
 		}
